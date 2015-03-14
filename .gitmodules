@@ -1,0 +1,3 @@
+[submodule "libraries/common"]
+	path = libraries/common
+	url = git@github.com:SciAps/Common.git

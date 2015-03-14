@@ -187,6 +187,10 @@ public class CalshotAvg {
                 }
             }
 
+            //dirty hack because we do not know what the original raster setting were when calibration was shot
+            test.config.rasterNumLocations = 1;
+            test.config.numShotsPerLocation = shotTable.size();
+
             final String testId = UUID.randomUUID().toString();
             test.mId = testId;
 

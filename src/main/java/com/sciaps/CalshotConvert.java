@@ -6,6 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.ZipOutputStream;
 
 public class CalshotConvert {
 
@@ -18,8 +21,9 @@ public class CalshotConvert {
         options.addOption(OptionBuilder
                         .withArgName("dir")
                         .hasArg()
-                        .withDescription("path to LIBZAnalysis")
-                        .create("analysisDir")
+                        .withDescription("path to CurveData dir")
+                        .isRequired()
+                        .create("curveData")
         );
 
         options.addOption(OptionBuilder
@@ -33,7 +37,6 @@ public class CalshotConvert {
                         .withArgName("num")
                         .hasArg()
                         .withDescription("number of shots to avg together (default 10)")
-                        .isRequired(false)
                         .create("numShots")
         );
 
@@ -41,19 +44,33 @@ public class CalshotConvert {
         try {
             CommandLine cmd = parser.parse(options, args);
 
-            File libzAnalysisDir = new File(cmd.getOptionValue("analysisDir"));
-            if(libzAnalysisDir.exists()){
-                logger.error("analysisDir does not exist: {}", libzAnalysisDir.getAbsolutePath());
+            CalshotAvg avg = new CalshotAvg();
+            avg.baseDir = new File(cmd.getOptionValue("curveData"));
+            if(!avg.baseDir.exists()){
+                logger.error("curveData dir does not exist: {}", avg.baseDir.getAbsolutePath());
                 System.exit(-1);
             }
 
 
+            File outputFile = new File(cmd.getOptionValue("out", "libzdb.sdb"));
+            logger.info("outputfile: {}", outputFile.getAbsolutePath());
+
+            avg.numShotAvg = Integer.parseInt(cmd.getOptionValue("numShots", "10"));
+            logger.info("using {} shot avg", avg.numShotAvg);
+
+            avg.zipOut = new ZipOutputStream(new FileOutputStream(outputFile));
+            avg.doIt();
+            avg.zipOut.close();
+
+        } catch(IOException e){
+            logger.error("", e);
+            System.exit(-1);
         } catch (ParseException e) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp( "calshotconvert", options );
             System.exit(-1);
         }
-
-
     }
+
+
 }

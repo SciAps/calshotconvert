@@ -1,4 +1,4 @@
-package com.sciaps;
+package com.sciaps.utils;
 
 
 import com.devsmart.IOUtils;
@@ -11,9 +11,6 @@ import com.sciaps.common.data.LIBZTest;
 import com.sciaps.common.data.Standard;
 import com.sciaps.common.objtracker.DBObj;
 import com.sciaps.common.utils.ShotDataHelper;
-import com.sciaps.utils.AvgShot;
-import com.sciaps.utils.CurveDataManager;
-import com.sciaps.utils.EmpiricalCurvesManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +76,8 @@ public class CalshotAvg {
                 LIBZTest test = new LIBZTest();
                 test.mId = UUID.randomUUID().toString();
                 test.standard = standard;
+                test.config.numShotsPerLocation = 1;
+                test.config.rasterNumLocations = shotTable.size();
 
                 test.saveIds(mIdLookup);
                 JsonElement element = EmpiricalCurvesManager.TypeGson.toJsonTree(test, test.getClass());

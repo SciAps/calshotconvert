@@ -1,8 +1,7 @@
 package com.sciaps;
 
 
-import com.sciaps.utils.CurveDataManager;
-import com.sciaps.utils.EmpiricalCurvesManager;
+import com.sciaps.utils.*;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +54,13 @@ public class DBBridge {
                 .withDescription("path to assays.json file")
                 .create("assays"));
 
+        options.addOption(OptionBuilder
+                .withArgName("z500|z100")
+                .hasArg()
+                .isRequired()
+                .withDescription("type of instrument (z500|z100)")
+                .create("type"));
+
         CommandLineParser parser = new BasicParser();
         try {
             CommandLine cmd = parser.parse(options, args);
@@ -83,19 +89,32 @@ public class DBBridge {
                 System.exit(-1);
             }
 
+            LIBZFingerprintCreator fpcreator = null;
+
             CurveDataManager curveDataManager = new CurveDataManager(curveDataDir);
             CalshotAvg avg = new CalshotAvg(curveDataManager);
             EmpiricalCurvesManager empiricalCurvesManager = new EmpiricalCurvesManager(empiricalCurvesFile, assaysFile, curveDataManager);
 
             empiricalCurvesManager.load();
 
+            final String type = cmd.getOptionValue("type");
+            if("z500".equals(type)) {
+                fpcreator = new Z500FPCreator(curveDataManager, empiricalCurvesManager);
+            } else if("z100".equals(type)) {
+                fpcreator = new Z100FPCreator(curveDataManager, empiricalCurvesManager);
+            } else {
+                logger.error("unknown type: {}", type);
+                System.exit(-1);
+            }
+
             ZipOutputStream zipout = new ZipOutputStream(new FileOutputStream(outputFile));
 
             empiricalCurvesManager.export(zipout, numShotAvg);
-
-
             avg.doIt(zipout, numShotAvg);
+            fpcreator.export(zipout, numShotAvg);
             zipout.close();
+
+            logger.info("Done.");
 
         } catch (ParseException e) {
             HelpFormatter formatter = new HelpFormatter();

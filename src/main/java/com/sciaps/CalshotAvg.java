@@ -65,7 +65,7 @@ public class CalshotAvg {
                     byte[] data = bout.toByteArray();
                     final String shotId = spectrumChecksum.hashBytes(data).toString();
 
-                    logger.info("creating random avg from {} shots for {}", smallAvg.size(), standard.name);
+                    logger.info("creating random avg from {} shots for {}", smallAvg.size(), standardName);
 
                     ZipEntry spectrumEntry = new ZipEntry(String.format("spectrum/%s.gz", shotId));
                     zipOut.putNextEntry(spectrumEntry);

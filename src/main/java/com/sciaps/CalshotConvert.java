@@ -1,6 +1,7 @@
 package com.sciaps;
 
 
+import com.sciaps.utils.CurveDataManager;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,8 @@ public class CalshotConvert {
                 logger.error("curveData dir does not exist: {}", curveDataDir.getAbsolutePath());
                 System.exit(-1);
             }
-            CalshotAvg avg = new CalshotAvg(curveDataDir);
+            CurveDataManager curveDataManager = new CurveDataManager(curveDataDir);
+            CalshotAvg avg = new CalshotAvg(curveDataManager);
 
 
             File outputFile = new File(cmd.getOptionValue("out", "libzdb.sdb"));

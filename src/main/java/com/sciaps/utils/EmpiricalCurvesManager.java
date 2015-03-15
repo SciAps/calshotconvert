@@ -33,7 +33,7 @@ public class EmpiricalCurvesManager {
 
     public static final HashFunction NamingHashFunction = Hashing.sha1();
 
-    private static Type MapType = new TypeToken<Map<String, Object>>(){}.getType();
+    public static final Type MapType = new TypeToken<Map<String, Object>>(){}.getType();
 
     public static final Gson TypeGson = new GsonBuilder()
                         .registerTypeAdapterFactory(new IdRefTypeAdapterFactory())
@@ -140,7 +140,7 @@ public class EmpiricalCurvesManager {
                         if(shotFiles != null && shotFiles.length > 0) {
                             EmpiricalCurveCreator.Sample sample = new EmpiricalCurveCreator.Sample();
                             sample.standard = s;
-                            sample.shots = createRandomAvgOf(numShotAvg, shotFiles);
+                            sample.shots = CurveDataManager.createRandomAvgOf(numShotAvg, shotFiles);
                             samples.add(sample);
                         } else {
                             logger.warn("no shot data for {} {}", model, s);
@@ -182,22 +182,5 @@ public class EmpiricalCurvesManager {
 
 
 
-    private static Collection<Shot> createRandomAvgOf(int numShots, File[] allSingleShotFiles) {
 
-        List<List<File>> shotGroup = Lists.partition(Arrays.asList(allSingleShotFiles), 60);
-        ArrayList<Shot> retval = new ArrayList<Shot>();
-
-        for(List<File> singleShots : shotGroup) {
-            Collections.shuffle(singleShots);
-            List<List<File>> smallAvg = Lists.partition(singleShots, numShots);
-            retval.addAll(Lists.transform(smallAvg, new Function<List<File>, Shot>() {
-                @Override
-                public Shot apply(List<File> input) {
-                    return new AvgShot(input.toArray(new File[input.size()]));
-                }
-            }));
-        }
-
-        return retval;
-    }
 }

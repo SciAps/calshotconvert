@@ -1,10 +1,14 @@
 package com.sciaps.utils;
 
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
+import com.sciaps.common.data.Shot;
+
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +49,14 @@ public class CurveDataManager {
         return retval;
     }
 
+    public List<String> getStandardNamesWithShotData() {
+        ArrayList<String> retval = new ArrayList<String>(mStandardDirs.length);
+        for(File standardDir : mStandardDirs) {
+            retval.add(standardDir.getName());
+        }
+        return retval;
+    }
+
     public File[] getSingleShotFilesForStandard(String standardName) {
         File[] retval = null;
         int i = Arrays.binarySearch(mStandardDirs, new File(standardName), StandardsFileComparator);
@@ -70,6 +82,25 @@ public class CurveDataManager {
                     return retval;
                 }
             });
+        }
+
+        return retval;
+    }
+
+    public static Collection<Shot> createRandomAvgOf(int numShots, File[] allSingleShotFiles) {
+
+        List<List<File>> shotGroup = Lists.partition(Arrays.asList(allSingleShotFiles), 60);
+        ArrayList<Shot> retval = new ArrayList<Shot>();
+
+        for(List<File> singleShots : shotGroup) {
+            Collections.shuffle(singleShots);
+            List<List<File>> smallAvg = Lists.partition(singleShots, numShots);
+            retval.addAll(Lists.transform(smallAvg, new Function<List<File>, Shot>() {
+                @Override
+                public Shot apply(List<File> input) {
+                    return new AvgShot(input.toArray(new File[input.size()]));
+                }
+            }));
         }
 
         return retval;

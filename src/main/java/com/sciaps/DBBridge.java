@@ -84,7 +84,7 @@ public class DBBridge {
             }
 
             CurveDataManager curveDataManager = new CurveDataManager(curveDataDir);
-            CalshotAvg avg = new CalshotAvg(curveDataDir);
+            CalshotAvg avg = new CalshotAvg(curveDataManager);
             EmpiricalCurvesManager empiricalCurvesManager = new EmpiricalCurvesManager(empiricalCurvesFile, assaysFile, curveDataManager);
 
             empiricalCurvesManager.load();

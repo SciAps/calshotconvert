@@ -24,20 +24,24 @@ public class AvgShot implements Shot {
     @Override
     public synchronized Spectrum getSpectrum() {
         if(mSpectrum == null) {
-            LIBZPixelShotAvg shotAverager = new LIBZPixelShotAvg();
-            for (File file : mShotFiles) {
-                LIBZPixelSpectrum shotData = null;
-                try {
-                    shotData = ShotDataHelper.loadCompressedFile(file);
-                } catch (IOException e) {
-                    Throwables.propagate(e);
-                }
-                doDarkPixSubtract(shotData);
-                shotAverager.addLIBZPixelSpectrum(shotData);
-                mSpectrum = shotAverager.getSpectrum();
-            }
+            mSpectrum = getPixelSpectrum().createSpectrum();
         }
         return mSpectrum;
+    }
+
+    public LIBZPixelSpectrum getPixelSpectrum() {
+        LIBZPixelShotAvg shotAverager = new LIBZPixelShotAvg();
+        for (File file : mShotFiles) {
+            LIBZPixelSpectrum shotData = null;
+            try {
+                shotData = ShotDataHelper.loadCompressedFile(file);
+            } catch (IOException e) {
+                Throwables.propagate(e);
+            }
+            doDarkPixSubtract(shotData);
+            shotAverager.addLIBZPixelSpectrum(shotData);
+        }
+        return shotAverager.getPixelSpectrum();
     }
 
     private static void doDarkPixSubtract(LIBZPixelSpectrum pixelSpectrum) {

@@ -44,23 +44,23 @@ public class CalshotConvert {
         try {
             CommandLine cmd = parser.parse(options, args);
 
-            CalshotAvg avg = new CalshotAvg();
-            avg.baseDir = new File(cmd.getOptionValue("curveData"));
-            if(!avg.baseDir.exists()){
-                logger.error("curveData dir does not exist: {}", avg.baseDir.getAbsolutePath());
+            final File curveDataDir = new File(cmd.getOptionValue("curveData"));
+            if(!curveDataDir.exists()){
+                logger.error("curveData dir does not exist: {}", curveDataDir.getAbsolutePath());
                 System.exit(-1);
             }
+            CalshotAvg avg = new CalshotAvg(curveDataDir);
 
 
             File outputFile = new File(cmd.getOptionValue("out", "libzdb.sdb"));
             logger.info("outputfile: {}", outputFile.getAbsolutePath());
 
-            avg.numShotAvg = Integer.parseInt(cmd.getOptionValue("numShots", "10"));
-            logger.info("using {} shot avg", avg.numShotAvg);
+            final int numShotAvg = Integer.parseInt(cmd.getOptionValue("numShots", "10"));
+            logger.info("using {} shot avg", numShotAvg);
 
-            avg.zipOut = new ZipOutputStream(new FileOutputStream(outputFile));
-            avg.doIt();
-            avg.zipOut.close();
+            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(outputFile));
+            avg.doIt(zipOut, numShotAvg);
+            zipOut.close();
 
         } catch(IOException e){
             logger.error("", e);

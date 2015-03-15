@@ -39,11 +39,10 @@ public class CalshotAvg {
     private final Gson ZipGson;
 
 
-    File baseDir;
-    ZipOutputStream zipOut;
-    int numShotAvg;
+    public final File baseDir;
 
-    public CalshotAvg() {
+    public CalshotAvg(File curveDataDir) {
+        baseDir = curveDataDir;
         TypeGson = new GsonBuilder()
                 .registerTypeAdapterFactory(new IdRefTypeAdapterFactory())
                 .serializeNulls()
@@ -75,7 +74,7 @@ public class CalshotAvg {
         }
     }
 
-    private void loadAndAvg(List<File> files, Map<String, String> shotTable, String standardName) throws IOException {
+    private static void loadAndAvg(List<File> files, Map<String, String> shotTable, String standardName, int numShotAvg, ZipOutputStream zipOut) throws IOException {
         Collections.shuffle(files);
         try {
             while (!files.isEmpty()) {
@@ -114,7 +113,7 @@ public class CalshotAvg {
         }
     }
 
-    public void doIt() throws IOException {
+    public void doIt(ZipOutputStream zipOut, int numShotAvg) throws IOException {
 
         final HashFunction standardIDHashFunction = Hashing.sha1();
         final OutputStreamWriter writer = new OutputStreamWriter(zipOut, Charsets.UTF_8);
@@ -173,7 +172,7 @@ public class CalshotAvg {
                 shotGroupFiles.add(shotFile);
                 if(shotGroupFiles.size() >= 60){
                     try {
-                        loadAndAvg(shotGroupFiles, shotTable, standardName);
+                        loadAndAvg(shotGroupFiles, shotTable, standardName, numShotAvg, zipOut);
                     } catch (IOException e) {
                         logger.error("", e);
                     }
@@ -181,7 +180,7 @@ public class CalshotAvg {
             }
             if(!shotGroupFiles.isEmpty()) {
                 try {
-                    loadAndAvg(shotGroupFiles, shotTable, standardName);
+                    loadAndAvg(shotGroupFiles, shotTable, standardName, numShotAvg, zipOut);
                 } catch (IOException e) {
                     logger.error("", e);
                 }

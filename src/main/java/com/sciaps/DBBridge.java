@@ -23,7 +23,6 @@ public class DBBridge {
                         .withArgName("dir")
                         .hasArg()
                         .withDescription("path to CurveData dir")
-                        .isRequired()
                         .create("curveData")
         );
 
@@ -54,6 +53,12 @@ public class DBBridge {
                 .create("assays"));
 
         options.addOption(OptionBuilder
+                .withArgName("LIBZAnalysis")
+                .hasArg()
+                .withDescription("path to LIBZAnalysis dir")
+                .create("libzAnalysis"));
+
+        options.addOption(OptionBuilder
                 .withArgName("z500|z100")
                 .hasArg()
                 .isRequired()
@@ -64,29 +69,45 @@ public class DBBridge {
         try {
             CommandLine cmd = parser.parse(options, args);
 
-            final File curveDataDir = new File(cmd.getOptionValue("curveData"));
+            final File empiricalCurvesFile;
+            final File assaysFile;
+            final File curveDataDir;
+
+            if(cmd.hasOption("libzAnalysis")) {
+                File libzAnalysisDir = new File(cmd.getOptionValue("libzAnalysis"));
+                empiricalCurvesFile = new File(libzAnalysisDir, "EmpiricalCurves.json");
+                assaysFile = new File(libzAnalysisDir, "assays.json");
+                curveDataDir = new File(libzAnalysisDir, "CurveData");
+            } else {
+                curveDataDir = new File(cmd.getOptionValue("curveData"));
+                empiricalCurvesFile = new File(cmd.getOptionValue("empiricalCurve"));
+                assaysFile = new File(cmd.getOptionValue("assays"));
+            }
+
             if(!curveDataDir.exists()){
                 logger.error("curveData dir does not exist: {}", curveDataDir.getAbsolutePath());
                 System.exit(-1);
             }
+
+            if(!empiricalCurvesFile.exists()) {
+                logger.error("empiricalCurve file does not exist: {}", empiricalCurvesFile.getAbsolutePath());
+                System.exit(-1);
+            }
+
+            if(!assaysFile.exists()) {
+                logger.error("assays file does not exist: {}", assaysFile.getAbsolutePath());
+                System.exit(-1);
+            }
+
+            logger.info("using {}", empiricalCurvesFile.getAbsolutePath());
+            logger.info("using {}", assaysFile.getAbsolutePath());
+            logger.info("using {}", curveDataDir.getAbsolutePath());
 
             final File outputFile = new File(cmd.getOptionValue("out", "libzdb.sdb"));
             logger.info("outputfile: {}", outputFile.getAbsolutePath());
 
             final int numShotAvg = Integer.parseInt(cmd.getOptionValue("numShots", "10"));
             logger.info("using {} shot avg", numShotAvg);
-
-            final File empiricalCurvesFile = new File(cmd.getOptionValue("empiricalCurve"));
-            if(!empiricalCurvesFile.exists()) {
-                logger.error("empiricalCurve file does not exist: {}", empiricalCurvesFile.getAbsolutePath());
-                System.exit(-1);
-            }
-
-            final File assaysFile = new File(cmd.getOptionValue("assays"));
-            if(!assaysFile.exists()) {
-                logger.error("assays file does not exist: {}", assaysFile.getAbsolutePath());
-                System.exit(-1);
-            }
 
             LIBZFingerprintCreator fpcreator = null;
 

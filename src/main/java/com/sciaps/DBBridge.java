@@ -1,6 +1,7 @@
 package com.sciaps;
 
 
+import com.google.common.base.Stopwatch;
 import com.sciaps.utils.*;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
@@ -109,6 +110,8 @@ public class DBBridge {
             final int numShotAvg = Integer.parseInt(cmd.getOptionValue("numShots", "10"));
             logger.info("using {} shot avg", numShotAvg);
 
+            Stopwatch sw = Stopwatch.createStarted();
+
             LIBZFingerprintCreator fpcreator = null;
 
             CurveDataManager curveDataManager = new CurveDataManager(curveDataDir);
@@ -134,7 +137,9 @@ public class DBBridge {
             fpcreator.export(zipout, numShotAvg);
             zipout.close();
 
-            logger.info("Done.");
+            sw.stop();
+            logger.info("Done. process took {}", sw);
+
 
         } catch (ParseException e) {
             HelpFormatter formatter = new HelpFormatter();

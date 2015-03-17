@@ -3,6 +3,8 @@ package com.sciaps.utils;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -135,7 +137,7 @@ public class EmpiricalCurvesManager {
 
                 ArrayList<EmpiricalCurveCreator.Sample> samples = new ArrayList<EmpiricalCurveCreator.Sample>();
                 for(Standard s : model.standardList) {
-                    if(!curve.excludedStandards.contains(s)) {
+                    if(!curve.excludedStandards.contains(s) && s.getGradeFor(curve.element) != null) {
                         File[] shotFiles = curveDataManager.getSingleShotFilesForStandard(s.name);
                         if(shotFiles != null && shotFiles.length > 0) {
                             EmpiricalCurveCreator.Sample sample = new EmpiricalCurveCreator.Sample();

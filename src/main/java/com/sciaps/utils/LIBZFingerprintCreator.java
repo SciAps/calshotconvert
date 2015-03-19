@@ -100,6 +100,12 @@ public abstract class LIBZFingerprintCreator {
             File[] singleShotFiles = mCurveDataManager.getSingleShotFilesForStandard(standardName);
 
             final Standard standard = getStandardByName(standardName);
+
+            if (standard == null) {
+                logger.error("Can't find standard by the name of {}", standardName);
+                break;
+            }
+
             final String baseName = standard.getBase();
 
             final Shot avgSpectrum = new AvgShot(singleShotFiles);

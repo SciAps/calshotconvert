@@ -26,10 +26,11 @@ public class CalshotAvg {
 
     private final CurveDataManager curveDataManager;
 
+    private final EmpiricalCurvesManager mEmpiricalCurvesManager;
 
-    public CalshotAvg(CurveDataManager curveDataManager) {
+    public CalshotAvg(CurveDataManager curveDataManager, EmpiricalCurvesManager empiricalCurvesManager) {
         this.curveDataManager = curveDataManager;
-
+        mEmpiricalCurvesManager = empiricalCurvesManager;
     }
 
     public void doIt(ZipOutputStream zipOut, int numShotAvg) throws IOException {
@@ -39,60 +40,63 @@ public class CalshotAvg {
 
         for(String standardName : curveDataManager.getStandardNamesWithShotData()) {
 
-            final Standard standard = new Standard();
-            standard.mId = EmpiricalCurvesManager.NamingHashFunction.newHasher()
-                    .putString(standardName, Charsets.UTF_8)
-                    .hash()
-                    .toString();
+            final Standard standard  = getStandardByName(standardName);
+            if (standard != null) {
 
-            File[] allShotFiles = curveDataManager.getSingleShotFilesForStandard(standardName);
+                standard.mId = EmpiricalCurvesManager.NamingHashFunction.newHasher()
+                        .putString(standardName, Charsets.UTF_8)
+                        .hash()
+                        .toString();
 
-            List<List<File>> shotGroup = Lists.partition(Arrays.asList(allShotFiles), 60);
-            for(List<File> shotFiles : shotGroup) {
-                Map<String, String> shotTable = new HashMap<String,String>();
-                Collections.shuffle(shotFiles);
+                File[] allShotFiles = curveDataManager.getSingleShotFilesForStandard(standardName);
 
-                for(List<File> smallAvg : Lists.partition(shotFiles, numShotAvg)){
-                    AvgShot avgShot = new AvgShot(smallAvg.toArray(new File[smallAvg.size()]));
+                List<List<File>> shotGroup = Lists.partition(Arrays.asList(allShotFiles), 60);
+                for (List<File> shotFiles : shotGroup) {
+                    Map<String, String> shotTable = new HashMap<String, String>();
+                    Collections.shuffle(shotFiles);
 
-                    ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                    ShotDataHelper.saveCompressed(avgShot.getPixelSpectrum(), bout);
-                    bout.close();
+                    for (List<File> smallAvg : Lists.partition(shotFiles, numShotAvg)) {
+                        AvgShot avgShot = new AvgShot(smallAvg.toArray(new File[smallAvg.size()]));
 
-                    byte[] data = bout.toByteArray();
-                    final String shotId = spectrumChecksum.hashBytes(data).toString();
+                        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                        ShotDataHelper.saveCompressed(avgShot.getPixelSpectrum(), bout);
+                        bout.close();
 
-                    logger.info("creating random avg from {} shots for {}", smallAvg.size(), standardName);
+                        byte[] data = bout.toByteArray();
+                        final String shotId = spectrumChecksum.hashBytes(data).toString();
 
-                    ZipEntry spectrumEntry = new ZipEntry(String.format("spectrum/%s.gz", shotId));
-                    zipOut.putNextEntry(spectrumEntry);
-                    IOUtils.pump(new ByteArrayInputStream(data), zipOut, true, false);
+                        logger.info("creating random avg from {} shots for {}", smallAvg.size(), standardName);
+
+                        ZipEntry spectrumEntry = new ZipEntry(String.format("spectrum/%s.gz", shotId));
+                        zipOut.putNextEntry(spectrumEntry);
+                        IOUtils.pump(new ByteArrayInputStream(data), zipOut, true, false);
+                        zipOut.closeEntry();
+
+                        String name = String.format("shot_%d", shotTable.size());
+                        shotTable.put(name, shotId);
+                    }
+
+                    LIBZTest test = new LIBZTest();
+                    test.mId = UUID.randomUUID().toString();
+                    test.standard = standard;
+                    test.config.numShotsPerLocation = 1;
+                    test.config.rasterNumLocations = shotTable.size();
+
+                    test.saveIds(mIdLookup);
+                    JsonElement element = EmpiricalCurvesManager.TypeGson.toJsonTree(test, test.getClass());
+                    Map<String, Object> newProps = EmpiricalCurvesManager.TypeGson.fromJson(element, EmpiricalCurvesManager.MapType);
+                    newProps.put("type", "test");
+                    newProps.put("shotTable", shotTable);
+
+                    logger.info("writing test: standard {} : {}", standardName, test.mId);
+
+                    final String fileName = String.format("dbobj/test/%s.json", test.mId);
+                    ZipEntry entry = new ZipEntry(fileName);
+                    zipOut.putNextEntry(entry);
+                    EmpiricalCurvesManager.ZipGson.toJson(newProps, writer);
+                    writer.flush();
                     zipOut.closeEntry();
-
-                    String name = String.format("shot_%d", shotTable.size());
-                    shotTable.put(name, shotId);
                 }
-
-                LIBZTest test = new LIBZTest();
-                test.mId = UUID.randomUUID().toString();
-                test.standard = standard;
-                test.config.numShotsPerLocation = 1;
-                test.config.rasterNumLocations = shotTable.size();
-
-                test.saveIds(mIdLookup);
-                JsonElement element = EmpiricalCurvesManager.TypeGson.toJsonTree(test, test.getClass());
-                Map<String, Object> newProps = EmpiricalCurvesManager.TypeGson.fromJson(element, EmpiricalCurvesManager.MapType);
-                newProps.put("type", "test");
-                newProps.put("shotTable", shotTable);
-
-                logger.info("writing test: standard {} : {}", standardName, test.mId);
-
-                final String fileName = String.format("dbobj/test/%s.json", test.mId);
-                ZipEntry entry = new ZipEntry(fileName);
-                zipOut.putNextEntry(entry);
-                EmpiricalCurvesManager.ZipGson.toJson(newProps, writer);
-                writer.flush();
-                zipOut.closeEntry();
             }
 
         }
@@ -106,6 +110,16 @@ public class CalshotAvg {
         }
     };
 
+    private Standard getStandardByName(String standardName) {
+        Standard retval = null;
+        for(Standard s : mEmpiricalCurvesManager.converter.standards) {
+            if(s.name.equals(standardName)) {
+                retval = s;
+                break;
+            }
+        }
+        return retval;
+    }
 
 
 }

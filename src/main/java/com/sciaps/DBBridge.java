@@ -115,8 +115,9 @@ public class DBBridge {
             LIBZFingerprintCreator fpcreator = null;
 
             CurveDataManager curveDataManager = new CurveDataManager(curveDataDir);
-            CalshotAvg avg = new CalshotAvg(curveDataManager);
+
             EmpiricalCurvesManager empiricalCurvesManager = new EmpiricalCurvesManager(empiricalCurvesFile, assaysFile, curveDataManager);
+            CalshotAvg avg = new CalshotAvg(curveDataManager, empiricalCurvesManager);
 
             empiricalCurvesManager.load();
 

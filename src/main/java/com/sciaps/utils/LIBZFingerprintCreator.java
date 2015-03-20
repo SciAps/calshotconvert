@@ -103,26 +103,27 @@ public abstract class LIBZFingerprintCreator {
 
             if (standard == null) {
                 logger.error("Can't find standard by the name of {}", standardName);
-                break;
-            }
 
-            final String baseName = standard.getBase();
+            } else {
 
-            final Shot avgSpectrum = new AvgShot(singleShotFiles);
+                final String baseName = standard.getBase();
 
-            alloyLib.addToLibrary(standardName, avgSpectrum.getSpectrum());
-            Collection<Shot> shots = CurveDataManager.createRandomAvgOf(numShotAvg, singleShotFiles);
+                final Shot avgSpectrum = new AvgShot(singleShotFiles);
 
-            if(baseName.startsWith("Ni")) {
-                niLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
-            } else if(baseName.startsWith("Stainless")) {
-                stainlessLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
-            } else if(baseName.startsWith("Cu")) {
-                cuLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
-            } else if(baseName.startsWith("Al")) {
-                alLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
-            } else if(baseName.startsWith("Ti")) {
-                tiLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
+                alloyLib.addToLibrary(standardName, avgSpectrum.getSpectrum());
+                Collection<Shot> shots = CurveDataManager.createRandomAvgOf(numShotAvg, singleShotFiles);
+
+                if (baseName.startsWith("Ni")) {
+                    niLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
+                } else if (baseName.startsWith("Stainless")) {
+                    stainlessLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
+                } else if (baseName.startsWith("Cu")) {
+                    cuLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
+                } else if (baseName.startsWith("Al")) {
+                    alLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
+                } else if (baseName.startsWith("Ti")) {
+                    tiLib.addToLibrary(standard, avgSpectrum.getSpectrum(), shots);
+                }
             }
         }
 

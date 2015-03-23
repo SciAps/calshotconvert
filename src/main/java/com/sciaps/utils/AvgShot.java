@@ -7,12 +7,16 @@ import com.sciaps.common.spectrum.LIBZPixelSpectrum;
 import com.sciaps.common.spectrum.Spectrum;
 import com.sciaps.common.utils.LIBZPixelShotAvg;
 import com.sciaps.common.utils.ShotDataHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 
 
 public class AvgShot implements Shot {
+
+    static Logger logger = LoggerFactory.getLogger(AvgShot.class);
 
     private final File[] mShotFiles;
     private Spectrum mSpectrum;
@@ -38,6 +42,13 @@ public class AvgShot implements Shot {
             } catch (IOException e) {
                 Throwables.propagate(e);
             }
+
+            for(int i=0;i<shotData.pixels.length;i++) {
+                if(shotData.pixels[i].length != 2066) {
+                    logger.warn("file: {} has incorrect buffer size: {}", file.getAbsolutePath(), shotData.pixels[i].length);
+                }
+            }
+
             doDarkPixSubtract(shotData);
             shotAverager.addLIBZPixelSpectrum(shotData);
         }

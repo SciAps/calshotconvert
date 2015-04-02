@@ -35,6 +35,7 @@ public class CalshotAvg {
 
     public void doIt(ZipOutputStream zipOut, int numShotAvg) throws IOException {
 
+        long unixTimeStamp = System.currentTimeMillis() / 1000L;
 
         final OutputStreamWriter writer = new OutputStreamWriter(zipOut, Charsets.UTF_8);
 
@@ -78,6 +79,7 @@ public class CalshotAvg {
 
                     LIBZTest test = new LIBZTest();
                     test.mId = UUID.randomUUID().toString();
+                    test.unixTime = unixTimeStamp++;
                     test.standard = standard;
                     test.config.numShotsPerLocation = 1;
                     test.config.rasterNumLocations = shotTable.size();

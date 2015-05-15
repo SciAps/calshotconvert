@@ -82,7 +82,10 @@ public class CalshotAvg {
                     test.unixTime = unixTimeStamp++;
                     test.standard = standard;
                     test.config.numShotsPerLocation = 1;
-                    test.config.rasterNumLocations = shotTable.size();
+                    test.config.numCleaningShotsPerLocation = 0;
+                    test.config.rasterNumLocations = shotFiles.size();
+                    test.config.numShotsToAvg = numShotAvg;
+
 
                     test.saveIds(mIdLookup);
                     JsonElement element = EmpiricalCurvesManager.TypeGson.toJsonTree(test, test.getClass());

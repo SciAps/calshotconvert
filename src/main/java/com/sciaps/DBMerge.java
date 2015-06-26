@@ -2,6 +2,9 @@ package com.sciaps;
 
 
 import com.devsmart.IOUtils;
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import com.google.gson.*;
 import com.sciaps.utils.LIBZDB;
 import org.apache.commons.cli.*;
@@ -24,6 +27,7 @@ public class DBMerge {
 
     static Logger logger = LoggerFactory.getLogger(DBMerge.class);
     private static final Pattern SPECTRUM_FILE_REGEX = Pattern.compile("spectrum/(.*).gz");
+    public static final HashFunction NamingHashFunction = Hashing.sha1();
 
     public static void main(String[] args) {
 
@@ -156,6 +160,7 @@ public class DBMerge {
             zipout.close();
 
 
+            logger.info("done");
 
 
 
@@ -177,9 +182,16 @@ public class DBMerge {
 
         JsonObject standardObj = standardEntry.value.getAsJsonObject();
 
+
+
         final String standardName = standardObj.getAsJsonPrimitive("name").getAsString();
 
-        String newId = String.format("standard-%s", standardName);
+        final String newId = NamingHashFunction.newHasher()
+                .putString(standardName, Charsets.UTF_8)
+                .hash()
+                .toString();
+
+
         return newId;
     }
 

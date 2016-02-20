@@ -14,9 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -112,16 +110,41 @@ public class DBMerge {
                 entry.writeToZip(zipout);
             }
 
-            /// Standards ///
+            Set<String> standardsSet = new TreeSet<String>();
+
+            /// Standards from calibration db ///
+            it = caldataDB.getAllOfType("standard");
+            while(it.hasNext()) {
+                LIBZDB.DBEntry entry = it.next();
+
+                LIBZDB.DBEntry newEntry = new LIBZDB.DBEntry(entry);
+                newEntry.key = transformStandardId(entry.key, seedDB);
+                if(standardsSet.add(newEntry.key)) {
+                    String standardName = newEntry.value.getAsJsonObject().getAsJsonPrimitive("name").getAsString();
+                    logger.info("adding standard from calibraion db: {}", standardName);
+                    newEntry.writeToZip(zipout);
+                }
+
+            }
+
+            /// Standards from seed ///
             it = seedDB.getAllOfType("standard");
             while(it.hasNext()) {
                 LIBZDB.DBEntry entry = it.next();
 
                 LIBZDB.DBEntry newEntry = new LIBZDB.DBEntry(entry);
                 newEntry.key = transformStandardId(entry.key, seedDB);
-                newEntry.writeToZip(zipout);
-
+                String standardName = newEntry.value.getAsJsonObject().getAsJsonPrimitive("name").getAsString();
+                if(standardsSet.add(newEntry.key)) {
+                    logger.info("adding standard from seed db: {}", standardName);
+                    newEntry.writeToZip(zipout);
+                } else {
+                    logger.info("already added standard from calibration db: {}", standardName);
+                }
             }
+
+
+
 
             /// Tests ///
             it = caldataDB.getAllOfType("test");
